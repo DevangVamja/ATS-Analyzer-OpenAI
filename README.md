@@ -103,5 +103,5 @@ http://localhost:5000
 We welcome contributions! Feel free to submit pull requests or open issues if you find any bugs or have feature suggestions.
 
 ---
-**Developed by**: Your Name
+**Developed by**: Devang Vamja
 
