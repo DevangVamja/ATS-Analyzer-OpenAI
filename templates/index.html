@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Resume Parser</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1f2937, #111827);
+        }
+        .gradient-border {
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            border-image: linear-gradient(135deg, #3b82f6, #9333ea);
+            border-image-slice: 1;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #9333ea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+    </style>
+</head>
+<body class="gradient-bg text-white">
+    <div class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="text-center mb-12 fade-in">
+            <h1 class="text-5xl font-bold mb-4 gradient-text">AI-Powered Resume Parser</h1>
+            <p class="text-lg text-gray-400 max-w-2xl">
+                Upload your resume in PDF format, and our AI will extract and display the key information for you. 
+                Perfect for recruiters, job seekers, and HR professionals.
+            </p>
+        </div>
+
+        <div class="w-full max-w-2xl fade-in">
+            <form id="uploadForm" enctype="multipart/form-data" class="gradient-border p-8 rounded-xl bg-gray-800/50 backdrop-blur-sm">
+                <div class="flex items-center justify-center w-full">
+                    <label for="pdfInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-600 rounded-lg cursor-pointer hover:border-gray-500 transition-all duration-300">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p class="text-xs text-gray-500">PDF only</p>
+                        </div>
+                        <input type="file" name="pdf_doc" id="pdfInput" accept=".pdf" class="hidden" />
+                    </label>
+                </div>
+
+                <!-- File Name Display -->
+                <div id="fileNameDisplay" class="mt-4 text-sm text-gray-400 text-center hidden">
+                    Selected file: <span id="fileName" class="font-semibold"></span>
+                </div>
+
+                <button type="submit" class="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 py-3 px-6 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105">
+                    Upload & Parse
+                </button>
+            </form>
+
+            <div id="result" class="mt-8 gradient-border p-6 rounded-xl bg-gray-800/50 backdrop-blur-sm hidden fade-in">
+                <h2 class="text-2xl font-bold gradient-text mb-4">Parsed Resume Data:</h2>
+                <pre id="parsedData" class="mt-4 p-4 bg-gray-700/50 rounded-lg text-sm text-gray-300 overflow-x-auto"></pre>
+            </div>
+
+            <!-- Error Message Container -->
+            <div id="errorMessage" class="mt-4 text-red-500 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // Add event listener to the file input to display the selected file name
+        document.getElementById("pdfInput").addEventListener("change", function() {
+            const fileInput = this;
+            const fileNameDisplay = document.getElementById("fileNameDisplay");
+            const fileNameSpan = document.getElementById("fileName");
+
+            if (fileInput.files && fileInput.files.length > 0) {
+                fileNameSpan.textContent = fileInput.files[0].name;
+                fileNameDisplay.classList.remove("hidden");
+            } else {
+                fileNameDisplay.classList.add("hidden");
+            }
+        });
+
+        // Form submission logic
+        document.getElementById("uploadForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            // Clear previous error messages
+            document.getElementById("errorMessage").classList.add("hidden");
+            document.getElementById("errorMessage").textContent = "";
+
+            // Get the file input
+            const fileInput = document.getElementById("pdfInput");
+            if (!fileInput.files || fileInput.files.length === 0) {
+                document.getElementById("errorMessage").textContent = "Please select a PDF file to upload.";
+                document.getElementById("errorMessage").classList.remove("hidden");
+                return;
+            }
+
+            // Create FormData object
+            const formData = new FormData();
+            formData.append("pdf_doc", fileInput.files[0]);
+
+            try {
+                // Send the file to the backend
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                // Handle the response
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Display the parsed data
+                document.getElementById("result").classList.remove("hidden");
+                document.getElementById("parsedData").textContent = JSON.stringify(JSON.parse(data.parsed_data), null, 2);
+            } catch (error) {
+                // Display any errors
+                document.getElementById("errorMessage").textContent = `Error: ${error.message}`;
+                document.getElementById("errorMessage").classList.remove("hidden");
+                console.error("Error uploading file:", error);
+            }
+        });
+    </script>
+</body>
+</html>
