@@ -1,7 +1,7 @@
-# Resume Parser App
+# ATS Analyzer App
 
 ## Overview
-The **Resume Parser App** is a Flask-based web application designed to help job seekers analyze their resumes for **ATS (Applicant Tracking System) friendliness**. The app extracts key details from resumes and presents them in **JSON format**, allowing users to optimize their resumes for better visibility in recruitment processes.
+The **ATS Analyzer App** is a Flask-based web application designed to help job seekers analyze their resumes for **ATS (Applicant Tracking System) friendliness**. The app extracts key details from resumes and presents them in **JSON format**, allowing users to optimize their resumes for better visibility in recruitment processes.
 
 ## Features
 - **Upload Resume**: Accepts resumes in **PDF format**.
